@@ -6,161 +6,131 @@
   <title>Canary Films AI</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Arial', sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #f5f5f5;
+      background-color: #f9fafb;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
       min-height: 100vh;
+      color: #333;
     }
     header {
-      background-color: #343541;
+      background: linear-gradient(90deg, #ffbf00, #ff8000);
       color: white;
-      padding: 10px 20px;
-      width: 100%;
-      text-align: center;
       font-size: 24px;
-    }
-    .tabs-container {
-      display: flex;
-      margin-top: 10px;
-    }
-    .tab {
-      background-color: #343541;
-      color: white;
-      padding: 10px;
-      margin-right: 5px;
-      border-radius: 5px 5px 0 0;
-      cursor: pointer;
-    }
-    .tab.active {
-      background-color: white;
-      color: #343541;
       font-weight: bold;
-    }
-    .chat-session {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      width: 80%;
-      max-width: 600px;
-      border: 2px solid #343541;
-      border-radius: 10px;
-      background-color: #fff;
+      text-align: center;
+      padding: 20px;
+      width: 100%;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
     }
-    .chat-session.active {
-      display: flex;
+    .chat-container {
+      border: 2px solid #ff8000;
+      border-radius: 10px;
+      margin-top: 20px;
+      width: 90%;
+      max-width: 600px;
+      background-color: white;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     }
     .chat-messages {
-      padding: 10px;
-      max-height: 300px;
+      padding: 15px;
+      max-height: 400px;
       overflow-y: auto;
-      width: 100%;
+      border-bottom: 1px solid #eee;
+    }
+    .chat-messages p {
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin: 5px 0;
+    }
+    .chat-messages p.user {
+      background-color: #ffbf00;
+      color: white;
+      align-self: flex-end;
+    }
+    .chat-messages p.ai {
+      background-color: #f3f3f3;
+      color: #333;
     }
     .input-container {
       display: flex;
       padding: 10px;
-      width: 100%;
     }
     .input-container input[type="text"] {
       flex-grow: 1;
-      padding: 10px;
-      border: 1px solid #e0e0e0;
-      border-radius: 5px;
+      padding: 12px;
+      border-radius: 20px;
+      border: 1px solid #ddd;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .input-container input[type="text"]:focus {
+      border-color: #ff8000;
     }
     .input-container button {
-      padding: 10px;
-      margin-left: 5px;
-      background-color: #343541;
+      margin-left: 10px;
+      padding: 12px 20px;
+      background-color: #ff8000;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 20px;
+      font-size: 16px;
       cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .input-container button:hover {
+      background-color: #ff6f00;
     }
   </style>
 </head>
 <body>
   <header>Canary Films AI</header>
-  <div class="tabs-container" id="tabs-container">
-    <div class="tab active" onclick="switchTab(0)">Session 1</div>
-    <div class="tab" onclick="switchTab(1)">Session 2</div>
-    <div class="tab" onclick="switchTab(2)">Session 3</div>
-  </div>
-  <div class="chat-session active" id="session-0">
-    <div class="chat-messages" id="messages-0">
-      <p>AI: Welcome to Canary Films AI! How can I assist you today?</p>
+  <div class="chat-container">
+    <div class="chat-messages" id="chat-messages">
+      <p class="ai">AI: Welcome to Canary Films AI! How can I assist you today?</p>
     </div>
     <div class="input-container">
-      <input type="text" id="input-0" placeholder="Type your message...">
-      <button onclick="sendMessage(0)">Send</button>
-    </div>
-  </div>
-  <div class="chat-session" id="session-1">
-    <div class="chat-messages" id="messages-1">
-      <p>AI: Welcome to Canary Films AI! How can I assist you today?</p>
-    </div>
-    <div class="input-container">
-      <input type="text" id="input-1" placeholder="Type your message...">
-      <button onclick="sendMessage(1)">Send</button>
-    </div>
-  </div>
-  <div class="chat-session" id="session-2">
-    <div class="chat-messages" id="messages-2">
-      <p>AI: Welcome to Canary Films AI! How can I assist you today?</p>
-    </div>
-    <div class="input-container">
-      <input type="text" id="input-2" placeholder="Type your message...">
-      <button onclick="sendMessage(2)">Send</button>
+      <input type="text" id="user-input" placeholder="Type your message...">
+      <button onclick="sendMessage()">Send</button>
     </div>
   </div>
 
   <script>
-    function switchTab(sessionIndex) {
-      const tabs = document.querySelectorAll('.tab');
-      const sessions = document.querySelectorAll('.chat-session');
-      tabs.forEach((tab, index) => {
-        tab.classList.toggle('active', index === sessionIndex);
-      });
-      sessions.forEach((session, index) => {
-        session.classList.toggle('active', index === sessionIndex);
-      });
-    }
-
-    async function sendMessage(sessionIndex) {
-      const userInput = document.getElementById(`input-${sessionIndex}`).value;
-      const messages = document.getElementById(`messages-${sessionIndex}`);
+    async function sendMessage() {
+      const userInput = document.getElementById('user-input').value;
+      const messagesContainer = document.getElementById('chat-messages');
 
       if (userInput.trim() !== "") {
         const userMessage = document.createElement('p');
         userMessage.textContent = `You: ${userInput}`;
-        messages.appendChild(userMessage);
+        userMessage.classList.add('user');
+        messagesContainer.appendChild(userMessage);
 
         const responseMessage = document.createElement('p');
         responseMessage.textContent = `AI: Thinking...`;
-        messages.appendChild(responseMessage);
+        responseMessage.classList.add('ai');
+        messagesContainer.appendChild(responseMessage);
 
         const response = await fetch("https://ai.hackclub.com/chat/completions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            messages: [
-              { role: "user", content: userInput }
-            ]
+            messages: [{ role: "user", content: userInput }]
           })
         });
 
         const data = await response.json();
         responseMessage.textContent = `AI: ${data.choices[0].message.content}`;
 
-        document.getElementById(`input-${sessionIndex}`).value = '';
-        messages.scrollTop = messages.scrollHeight;
+        document.getElementById('user-input').value = '';
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
       }
     }
   </script>
 </body>
-  </html>
+</html>
