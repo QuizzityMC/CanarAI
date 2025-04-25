@@ -27,20 +27,63 @@
       width: 100%;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    .chat-container {
-      border: 2px solid #ff8000;
-      border-radius: 10px;
-      margin-top: 20px;
+    .prompt-container {
+      margin: 20px;
       width: 90%;
       max-width: 600px;
+    }
+    .prompt-container textarea {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      border-radius: 20px;
+      border: 2px solid #ff8000;
+      font-size: 16px;
+    }
+    .prompt-container label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .tabs-container {
+      display: flex;
+      margin-top: 10px;
+    }
+    .tab {
+      background-color: #ff8000;
+      color: white;
+      padding: 10px;
+      margin-right: 5px;
+      border-radius: 5px 5px 0 0;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .tab.active {
+      background-color: white;
+      color: #ff8000;
+      font-weight: bold;
+    }
+    .chat-session {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      width: 90%;
+      max-width: 600px;
+      border: 2px solid #ff8000;
+      border-radius: 10px;
       background-color: white;
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      margin-bottom: 20px;
+    }
+    .chat-session.active {
+      display: flex;
     }
     .chat-messages {
       padding: 15px;
       max-height: 400px;
       overflow-y: auto;
       border-bottom: 1px solid #eee;
+      width: 100%;
     }
     .chat-messages p {
       padding: 8px 12px;
@@ -59,6 +102,7 @@
     .input-container {
       display: flex;
       padding: 10px;
+      width: 100%;
     }
     .input-container input[type="text"] {
       flex-grow: 1;
@@ -90,20 +134,59 @@
 </head>
 <body>
   <header>Canary Films AI</header>
-  <div class="chat-container">
-    <div class="chat-messages" id="chat-messages">
+  <div class="prompt-container">
+    <label for="ai-prompt">Set AI Role/Instructions:</label>
+    <textarea id="ai-prompt" placeholder="Define AI behavior or role..."></textarea>
+  </div>
+  <div class="tabs-container" id="tabs-container">
+    <div class="tab active" onclick="switchTab(0)">Session 1</div>
+    <div class="tab" onclick="switchTab(1)">Session 2</div>
+    <div class="tab" onclick="switchTab(2)">Session 3</div>
+  </div>
+  <div class="chat-session active" id="session-0">
+    <div class="chat-messages" id="messages-0">
       <p class="ai">AI: Welcome to Canary Films AI! How can I assist you today?</p>
     </div>
     <div class="input-container">
-      <input type="text" id="user-input" placeholder="Type your message...">
-      <button onclick="sendMessage()">Send</button>
+      <input type="text" id="input-0" placeholder="Type your message...">
+      <button onclick="sendMessage(0)">Send</button>
+    </div>
+  </div>
+  <div class="chat-session" id="session-1">
+    <div class="chat-messages" id="messages-1">
+      <p class="ai">AI: Welcome to Canary Films AI! How can I assist you today?</p>
+    </div>
+    <div class="input-container">
+      <input type="text" id="input-1" placeholder="Type your message...">
+      <button onclick="sendMessage(1)">Send</button>
+    </div>
+  </div>
+  <div class="chat-session" id="session-2">
+    <div class="chat-messages" id="messages-2">
+      <p class="ai">AI: Welcome to Canary Films AI! How can I assist you today?</p>
+    </div>
+    <div class="input-container">
+      <input type="text" id="input-2" placeholder="Type your message...">
+      <button onclick="sendMessage(2)">Send</button>
     </div>
   </div>
 
   <script>
-    async function sendMessage() {
-      const userInput = document.getElementById('user-input').value;
-      const messagesContainer = document.getElementById('chat-messages');
+    function switchTab(sessionIndex) {
+      const tabs = document.querySelectorAll('.tab');
+      const sessions = document.querySelectorAll('.chat-session');
+      tabs.forEach((tab, index) => {
+        tab.classList.toggle('active', index === sessionIndex);
+      });
+      sessions.forEach((session, index) => {
+        session.classList.toggle('active', index === sessionIndex);
+      });
+    }
+
+    async function sendMessage(sessionIndex) {
+      const userInput = document.getElementById(`input-${sessionIndex}`).value;
+      const messagesContainer = document.getElementById(`messages-${sessionIndex}`);
+      const aiPrompt = document.getElementById('ai-prompt').value;
 
       if (userInput.trim() !== "") {
         const userMessage = document.createElement('p');
@@ -120,14 +203,17 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            messages: [{ role: "user", content: userInput }]
+            messages: [
+              { role: "system", content: aiPrompt },
+              { role: "user", content: userInput }
+            ]
           })
         });
 
         const data = await response.json();
         responseMessage.textContent = `AI: ${data.choices[0].message.content}`;
 
-        document.getElementById('user-input').value = '';
+        document.getElementById(`input-${sessionIndex}`).value = '';
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       }
     }
